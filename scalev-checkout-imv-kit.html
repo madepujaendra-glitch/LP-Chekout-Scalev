@@ -374,14 +374,18 @@
     }catch(e){ /* diamkan; fallback sudah tampil */ }
   }
 
-  /* ---------- Kupon ---------- */
-  el("btn-coupon").addEventListener("click", async function(){
-    var code = (el("in-coupon").value||"").trim();
-    var msg = el("couponMsg");
+  /* ---------- Kupon ----------
+     Biar PERSIS referensi (199rb dicoret -> -100rb -> 99rb): di Scalev set Harga produk = 199.000,
+     buat kupon potong 100.000, lalu isi PROMO_CODE di bawah dengan kode kupon itu → auto-apply.  */
+  var PROMO_CODE = "IMVKIT-99";   // kode diskon dari Scalev (auto-apply saat checkout dibuka)
+
+  async function applyCoupon(code, silent){
+    code = (code||"").trim();
+    var msg = el("couponMsg"); var btn = el("btn-coupon");
     msg.className="coupon-msg"; msg.textContent="";
-    if(!code){ msg.className="coupon-msg bad"; msg.textContent="Masukkan kode kupon dulu."; return; }
-    if(!svReady("validateDiscount")){ msg.className="coupon-msg bad"; msg.textContent="Preview mode — kupon aktif setelah diterbitkan."; return; }
-    this.disabled=true; this.textContent="...";
+    if(!code){ if(!silent){ msg.className="coupon-msg bad"; msg.textContent="Masukkan kode kupon dulu."; } return; }
+    if(!svReady("validateDiscount")){ if(!silent){ msg.className="coupon-msg bad"; msg.textContent="Preview mode — kupon aktif setelah diterbitkan."; } return; }
+    btn.disabled=true; var ol=btn.textContent; btn.textContent="...";
     try{
       var r = await Scalev.checkout.validateDiscount({ discountCode: code, items: buildItems(), paymentMethod: selectedPayment });
       var d = (r && (r.data||r.discount||r)) || {};
@@ -398,9 +402,10 @@
       }
     }catch(e){
       appliedCode=""; appliedDiscount=0;
-      msg.className="coupon-msg bad"; msg.textContent = (e && e.message) ? e.message : "Gagal cek kupon.";
-    }finally{ this.disabled=false; this.textContent="Pakai"; }
-  });
+      if(!silent){ msg.className="coupon-msg bad"; msg.textContent = (e && e.message) ? e.message : "Gagal cek kupon."; }
+    }finally{ btn.disabled=false; btn.textContent="Pakai"; }
+  }
+  el("btn-coupon").addEventListener("click", function(){ applyCoupon(el("in-coupon").value); });
 
   /* ---------- Validasi form ---------- */
   function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
@@ -482,6 +487,14 @@
   renderProduct();
   renderPayments();
   refreshSummary();
+
+  /* Auto-apply kupon promo (kalau di-set) + tampilkan hint "Contoh kode" */
+  if(PROMO_CODE){
+    el("in-coupon").value = PROMO_CODE;
+    el("couponHintCode").textContent = PROMO_CODE;
+    el("couponHint").hidden = false;
+    applyCoupon(PROMO_CODE, true);
+  }
 })();
 </script>
 </body>
