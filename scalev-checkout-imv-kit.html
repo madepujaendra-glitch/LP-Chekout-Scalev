@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout · IMV Kit — Apple Text Motion Kit</title>
+<style>
+  :root{
+    --bg:#080810; --card:#0e0e18; --subtle:#15151f; --line:rgba(242,240,234,0.12);
+    --text:#F2F0EA; --muted:#b8b5ac; --faint:#6b6b76;
+    --primary:#C3FF00; --primary-2:#e3ff66; --danger:#ff5a5a; --success:#5fd07a;
+    --sf-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+    --sf-primary:#C3FF00; --sv-cart-on-primary:#06060a;
+    --sv-cart-surface:#0e0e18; --sv-cart-text:#F2F0EA; --sv-cart-muted:#b8b5ac; --sv-cart-faint:#6b6b76;
+    --sv-cart-border:rgba(242,240,234,0.14); --sv-cart-subtle:#15151f; --sv-cart-danger:#ff5a5a;
+    --sv-cart-success:#5fd07a; --sv-cart-chip-icon:#C3FF00; --sv-cart-scrim:rgba(0,0,0,0.62);
+    --sv-cart-radius:12px; --sv-cart-toast-surface:#15151f; --sv-cart-toast-text:#F2F0EA;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--bg);color:var(--text);font-family:var(--sf-font);font-size:16px;line-height:1.55}
+  img{max-width:100%;display:block}
+  .serif{font-family:var(--serif);font-style:italic;color:var(--primary)}
+
+  .topbar{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px;border-bottom:1px solid var(--line)}
+  .brand{color:var(--primary);font-weight:800;font-size:20px;letter-spacing:-.5px}
+
+  .wrap{max-width:1160px;margin-inline:auto;padding:18px 16px 48px}
+  .grid{display:flex;flex-direction:column;gap:16px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .card h2{font-size:17px;font-weight:800;margin-bottom:14px;letter-spacing:-.3px}
+
+  /* product head */
+  .phead{display:flex;gap:14px;align-items:center}
+  .phead img{width:72px;height:72px;border-radius:12px;object-fit:cover;border:1px solid var(--line);background:var(--subtle);flex:0 0 auto}
+  .phead .pt{font-size:16px;font-weight:800;line-height:1.25}
+  .phead .ps{font-size:13px;color:var(--muted);margin-top:2px}
+
+  /* yang kamu dapat */
+  .kit{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+  .kit:last-of-type{border-bottom:0}
+  .kit .n{flex:0 0 auto;min-width:52px;text-align:center;color:var(--primary);font-weight:800;font-size:14px}
+  .kit .c{color:var(--success);font-weight:800;flex:0 0 auto;min-width:52px;text-align:center}
+  .kit .t{font-size:14.5px}
+  .totrow{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-weight:700}
+  .totrow .v{color:var(--muted);text-decoration:line-through}
+
+  /* price */
+  .price{text-align:center}
+  .price .norm{color:var(--muted);font-size:14px}
+  .price .old{color:var(--muted);text-decoration:line-through;font-weight:600;font-size:16px}
+  .price .now{font-size:clamp(34px,9vw,44px);font-weight:800;letter-spacing:-1px;line-height:1}
+  .price .now small{font-size:.55em;color:var(--primary);vertical-align:top;font-weight:800}
+  .hemat{display:inline-block;background:rgba(195,255,0,.12);color:var(--primary);border:1px solid rgba(195,255,0,.32);border-radius:100px;padding:6px 14px;font-size:12.5px;font-weight:800;margin-top:10px}
+
+  .count{display:flex;flex-direction:column;align-items:center;gap:4px;background:linear-gradient(135deg,#1b1b12,#12120c);border:1px solid rgba(195,255,0,.22);border-radius:14px;padding:14px}
+  .count .lbl{font-size:13px;color:var(--muted)}
+  .count .time{font-size:26px;font-weight:800;color:var(--primary);font-variant-numeric:tabular-nums;letter-spacing:1px}
+
+  /* form */
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  label{display:block;font-size:13.5px;font-weight:600;margin-bottom:7px}
+  label .req{color:var(--primary)}
+  input[type=text],input[type=email],input[type=tel]{width:100%;min-height:48px;background:var(--subtle);border:1px solid var(--line);border-radius:12px;padding:0 14px;color:var(--text);font-size:16px;font-family:inherit}
+  input::placeholder{color:var(--faint)}
+  input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(195,255,0,.14)}
+  .hint{font-size:12px;color:var(--faint);margin-top:6px}
+  .ferr{font-size:12.5px;color:var(--danger);margin-top:6px;display:none}
+  .field.invalid input{border-color:var(--danger)}
+  .field.invalid .ferr{display:block}
+
+  /* payment */
+  .pay{display:flex;flex-direction:column;gap:10px}
+  .pm{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;min-height:56px;transition:border-color .15s,background .15s}
+  .pm:hover{border-color:rgba(195,255,0,.4)}
+  .pm.sel{border-color:var(--primary);background:rgba(195,255,0,.06)}
+  .pm input{accent-color:var(--primary);width:20px;height:20px;flex:0 0 auto}
+  .pm .logo{width:46px;height:30px;object-fit:contain;background:#fff;border-radius:6px;padding:3px;flex:0 0 auto}
+  .pm .lg-fallback{width:46px;height:30px;border-radius:6px;background:var(--subtle);flex:0 0 auto;display:grid;place-items:center;color:var(--faint);font-size:10px}
+  .pm .nm{font-size:14.5px;font-weight:600}
+
+  /* coupon */
+  .coupon{display:flex;gap:10px}
+  .coupon input{flex:1;text-transform:uppercase}
+  .coupon button{flex:0 0 auto;min-height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--subtle);color:var(--text);font-weight:700;font-size:15px;cursor:pointer;border:1px solid var(--line)}
+  .coupon button:hover{border-color:var(--primary)}
+  .coupon-msg{font-size:13px;margin-top:8px;display:none}
+  .coupon-msg.ok{display:block;color:var(--success)}
+  .coupon-msg.bad{display:block;color:var(--danger)}
+  .coupon-hint{font-size:12px;color:var(--faint);margin-top:8px}
+  .coupon-hint b{color:var(--primary)}
+
+  /* summary */
+  .srow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 0;font-size:14.5px;color:var(--muted)}
+  .srow .lbl{min-width:0}
+  .srow .val{flex:0 0 auto;font-weight:600;color:var(--text)}
+  .srow.disc .val{color:var(--success)}
+  .srow.total{border-top:1px solid var(--line);margin-top:6px;padding-top:14px;color:var(--text);font-weight:800;font-size:18px}
+  .srow.total .val{font-size:20px;font-weight:800}
+
+  /* cta */
+  .cta{width:100%;min-height:56px;border:0;border-radius:100px;background:linear-gradient(135deg,var(--primary-2),var(--primary));color:#06060a;font-weight:800;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 12px 34px rgba(195,255,0,.26);transition:transform .2s,box-shadow .2s,opacity .2s;margin-top:4px}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 16px 44px rgba(195,255,0,.36)}
+  .cta[disabled]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+  .trust{color:var(--muted);font-size:12.5px;text-align:center;margin-top:12px}
+  .formerr{color:var(--danger);font-size:13.5px;margin-top:12px;display:none;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.3);border-radius:10px;padding:11px 13px}
+  .formerr.show{display:block}
+
+  .guar h3{font-size:16px;font-weight:800;color:var(--primary);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+  .guar p{color:var(--muted);font-size:13.5px;margin:0 0 7px}
+  .guar p:last-child{margin:0;font-size:12px;opacity:.85}
+
+  footer{border-top:1px solid var(--line);padding:22px 16px;text-align:center;color:var(--faint);font-size:12px;max-width:1160px;margin-inline:auto}
+
+  .thanks{max-width:520px;margin:60px auto;text-align:center;padding:0 16px}
+  .thanks .ic{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary-2),var(--primary));color:#06060a;display:grid;place-items:center;margin:0 auto 18px;font-size:34px;font-weight:800}
+  .thanks h2{font-size:24px;font-weight:800;margin-bottom:10px}
+  .thanks p{color:var(--muted)}
+
+  @media(min-width:1024px){
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;align-items:start}
+    .col-info{display:flex;flex-direction:column;gap:16px}
+    .col-form{display:flex;flex-direction:column;gap:16px}
+    .price .now{font-size:46px}
+  }
+
+  /* Scalev drawer/toast overrides (kalau ada) */
+  html body .sv-cart-toast{background:var(--sv-cart-toast-surface);color:var(--sv-cart-toast-text);border:1px solid var(--sv-cart-border);border-radius:var(--sv-cart-radius)}
+  html body .sv-cart-toast__msg{color:var(--sv-cart-toast-text)}
+
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+  <div class="topbar"><span class="brand">imadevideo</span></div>
+
+  <main class="wrap" id="checkout">
+    <div class="grid">
+      <!-- ===== KIRI: info produk ===== -->
+      <div class="col-info">
+        <div class="card">
+          <div class="phead">
+            <img id="pimg" src="https://cdn.scalev.com/uploads/1789682158/FctqIhA2frZYSbripIjwPA/1789682158507-imv-kit-cover.webp" alt="IMV Kit">
+            <div>
+              <div class="pt" id="pname">IMV Kit — Apple Text Motion Kit</div>
+              <div class="ps">Produk digital · CapCut Desktop</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Yang Kamu Dapat</h2>
+          <div class="kit"><span class="n">40+</span><span class="t">Text Motion Apple Style</span></div>
+          <div class="kit"><span class="n">6000+</span><span class="t">Sound Effect (SFX)</span></div>
+          <div class="kit"><span class="n">600+</span><span class="t">Font Pack</span></div>
+          <div class="kit"><span class="n">500+</span><span class="t">Asset Editing</span></div>
+          <div class="kit"><span class="n">150+</span><span class="t">Transition Pack</span></div>
+          <div class="kit"><span class="n">130+</span><span class="t">Background Apple Style</span></div>
+          <div class="kit"><span class="n">90+</span><span class="t">LUT Cinematic</span></div>
+          <div class="kit"><span class="c">✓</span><span class="t">Practice Kit Apple Style</span></div>
+          <div class="kit"><span class="c">✓</span><span class="t">Bonus Video Cara Pakai Semua Asset</span></div>
+          <div class="totrow"><span>Total value</span><span class="v">Rp 1.397.000</span></div>
+        </div>
+
+        <div class="card guar">
+          <h3>🛡️ Garansi Pasti Bisa</h3>
+          <p>Semua lengkap sama tutorial cara pasangnya, dijamin kepake walau baru pertama kali. Kalau file rusak/gak bisa dibuka dan gak bisa kami bantu, uang balik 100%.</p>
+          <p>Berlaku untuk masalah teknis file. Bukan karena salah device (khusus CapCut Desktop) atau berubah pikiran.</p>
+        </div>
+      </div>
+
+      <!-- ===== KANAN: form checkout ===== -->
+      <div class="col-form">
+        <div class="card price">
+          <div class="norm">Harga Normal</div>
+          <div class="old">Rp 199.000</div>
+          <div class="now" id="priceNow"><small>Rp</small> 99.000</div>
+          <div><span class="hemat">HEMAT Rp 100.000</span></div>
+        </div>
+
+        <div class="count"><span class="lbl">Waktu promo berakhir dalam</span><span class="time" id="count">15:00</span></div>
+
+        <div class="card">
+          <h2>Data Pembeli</h2>
+          <div class="field" id="f-name">
+            <label>Nama Lengkap <span class="req">*</span></label>
+            <input type="text" id="in-name" placeholder="Nama kamu" autocomplete="name">
+            <div class="ferr">Nama wajib diisi.</div>
+          </div>
+          <div class="field" id="f-phone">
+            <label>No. WhatsApp <span class="req">*</span></label>
+            <input type="tel" id="in-phone" placeholder="08xxxxxxxxxx atau 628xxxxxxxxx" inputmode="numeric" autocomplete="tel">
+            <div class="hint">Awali dengan <b>0</b> atau kode negara tanpa tanda plus (contoh: <b>62</b>).</div>
+            <div class="ferr">Nomor WhatsApp tidak valid.</div>
+          </div>
+          <div class="field" id="f-email">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" id="in-email" placeholder="email@kamu.com" autocomplete="email">
+            <div class="ferr">Email tidak valid.</div>
+          </div>
+        </div>
+
+        <div class="card" id="payCard">
+          <h2>Metode Pembayaran</h2>
+          <div class="pay" id="payList"></div>
+        </div>
+
+        <div class="card">
+          <h2>Punya Kupon?</h2>
+          <div class="coupon">
+            <input type="text" id="in-coupon" placeholder="Masukkan kode">
+            <button type="button" id="btn-coupon">Pakai</button>
+          </div>
+          <div class="coupon-msg" id="couponMsg"></div>
+          <div class="coupon-hint" id="couponHint" hidden>Contoh kode: <b id="couponHintCode"></b></div>
+        </div>
+
+        <div class="card">
+          <h2>Ringkasan</h2>
+          <div id="summary">
+            <div class="srow"><span class="lbl" id="sumItemName">IMV Kit — Apple Text Motion Kit</span><span class="val" id="sumPaket">Rp 99.000</span></div>
+            <div class="srow disc" id="sumDiscRow" hidden><span class="lbl">Diskon</span><span class="val" id="sumDisc">- Rp 0</span></div>
+            <div class="srow" id="sumFeeRow" hidden><span class="lbl" id="sumFeeLbl">Biaya Payment</span><span class="val" id="sumFee">Rp 0</span></div>
+            <div class="srow total"><span class="lbl">Total</span><span class="val" id="sumTotal">Rp 99.000</span></div>
+          </div>
+          <button type="button" class="cta" id="btnOrder">Pesan Sekarang</button>
+          <div class="formerr" id="formErr"></div>
+          <p class="trust">🔒 Pembayaran aman &amp; pesanan langsung diproses.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>© 2026 imadevideo. Tidak berafiliasi dengan Apple Inc. maupun CapCut. "Apple-style" mengacu pada gaya visual.</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Fallback data (preview Studio) ---------- */
+  var FALLBACK = {
+    page:{}, afterCheckout:{ type:"success_page" },
+    store:{
+      id:97577, uniqueId:"store_JG8VMzBzICCsYDvzb1AKsV5J", name:"imadevideo", isPaymentLinkEnabled:false,
+      paymentMethodOptions:[
+        {value:"qris",display:"QRIS",logoUrl:"https://cdn.scalev.com/icons/qris.png"},
+        {value:"gopay",display:"GoPay",logoUrl:"https://cdn.scalev.com/icons/gopay.png"},
+        {value:"dana",display:"DANA",logoUrl:"https://cdn.scalev.com/icons/dana.png"},
+        {value:"ovo",display:"OVO",logoUrl:"https://cdn.scalev.com/icons/ovo.png"},
+        {value:"shopeepay",display:"ShopeePay",logoUrl:"https://cdn.scalev.com/icons/shopeepay.png"},
+        {value:"va_bni",display:"BNI Virtual Account",logoUrl:"https://cdn.scalev.com/icons/va_bni.png"},
+        {value:"va_bri",display:"BRI Virtual Account",logoUrl:"https://cdn.scalev.com/icons/va_bri.png"},
+        {value:"va_mandiri",display:"Bank Mandiri Virtual Account",logoUrl:"https://cdn.scalev.com/icons/va_mandiri.png"}
+      ],
+      products:[{ id:457670, name:"IMV Kit - Apple Text Motion Kit",
+        images:["https://cdn.scalev.com/uploads/1789682158/FctqIhA2frZYSbripIjwPA/1789682158507-imv-kit-cover.webp"],
+        variants:[{ id:593812, uniqueId:"variant_W_vrotbtcEuUB6D4PzHE8q1s", name:"Default", price:99000, priceMode:"fixed", minimumCustomerPrice:null, availableQty:"unlimited" }]
+      }],
+      bundlePriceOptions:[]
+    }
+  };
+
+  function getData(){
+    try{ if(window.Scalev && Scalev.data && typeof Scalev.data.get==="function"){ var d=Scalev.data.get(); if(d && d.store) return d; } }catch(e){}
+    return FALLBACK;
+  }
+  function svReady(m){ return !!(window.Scalev && Scalev.checkout && typeof Scalev.checkout[m]==="function"); }
+  function toInt(v){ var n=Math.round(parseFloat(v)); return isFinite(n)?n:0; }
+  function rupiah(n){ return "Rp " + (toInt(n)).toLocaleString("id-ID"); }
+  function esc(s){ return String(s==null?"":s); }
+  function pickNum(o,keys){ if(!o) return null; for(var i=0;i<keys.length;i++){ var k=keys[i]; if(o[k]!=null && !isNaN(parseFloat(o[k]))) return parseFloat(o[k]); } return null; }
+  function el(id){ return document.getElementById(id); }
+
+  var data = getData();
+  var store = data.store || {};
+  var after = data.afterCheckout || { type:"success_page" };
+  var product = (store.products && store.products[0]) || null;
+  var variant = (product && product.variants && product.variants[0]) || null;
+  var payOptions = store.paymentMethodOptions || [];
+  var payLinkForced = store.isPaymentLinkEnabled === true;
+  var selectedPayment = payLinkForced ? "payment_link" : (payOptions[0] ? payOptions[0].value : null);
+  var appliedCode = "";
+  var appliedDiscount = 0;
+
+  function unitPrice(){
+    if(variant && variant.price!=null) return toInt(variant.price);
+    if(product && product.price_range && product.price_range.min!=null) return toInt(product.price_range.min);
+    return 99000;
+  }
+  function buildItems(){
+    if(!variant) return [];
+    var it = { type:"product", variantUniqueId: variant.uniqueId, quantity:1 };
+    if((variant.priceMode||"fixed")==="customer_defined"){ it.customerPrice = unitPrice(); }
+    return [it];
+  }
+
+  /* ---------- Render awal ---------- */
+  function renderProduct(){
+    if(product && product.name){ el("pname").textContent = product.name; el("sumItemName").textContent = product.name; }
+    var img = (product && product.images && product.images[0]) || (variant && variant.images && variant.images[0]);
+    if(img){ el("pimg").src = img; el("pimg").alt = product ? product.name : "Produk"; }
+    el("priceNow").innerHTML = '<small>Rp</small> ' + toInt(unitPrice()).toLocaleString("id-ID");
+    el("sumPaket").textContent = rupiah(unitPrice());
+    el("sumTotal").textContent = rupiah(unitPrice());
+  }
+
+  function renderPayments(){
+    var box = el("payList");
+    if(payLinkForced){
+      // paylink dipaksa: sembunyikan selector
+      el("payCard").hidden = true;
+      selectedPayment = "payment_link";
+      return;
+    }
+    box.innerHTML = "";
+    if(!payOptions.length){
+      box.innerHTML = '<div style="color:var(--muted);font-size:14px">Metode pembayaran akan muncul setelah halaman diterbitkan.</div>';
+      return;
+    }
+    payOptions.forEach(function(opt, i){
+      var lab = document.createElement("label");
+      lab.className = "pm" + (i===0?" sel":"");
+      var r = document.createElement("input");
+      r.type="radio"; r.name="pm"; r.value=opt.value; if(i===0) r.checked=true;
+      r.addEventListener("change", function(){
+        selectedPayment = opt.value;
+        [].forEach.call(box.querySelectorAll(".pm"), function(x){ x.classList.remove("sel"); });
+        lab.classList.add("sel");
+        refreshSummary();
+      });
+      lab.appendChild(r);
+      if(opt.logoUrl){
+        var img=document.createElement("img"); img.className="logo"; img.src=opt.logoUrl; img.alt=opt.display||"";
+        img.onerror=function(){ var f=document.createElement("span"); f.className="lg-fallback"; f.textContent="pay"; lab.replaceChild(f,img); };
+        lab.appendChild(img);
+      }else{ var f=document.createElement("span"); f.className="lg-fallback"; f.textContent="pay"; lab.appendChild(f); }
+      var nm=document.createElement("span"); nm.className="nm"; nm.textContent=opt.display||opt.value; lab.appendChild(nm);
+      box.appendChild(lab);
+    });
+    selectedPayment = payOptions[0].value;
+  }
+
+  /* ---------- Ringkasan ---------- */
+  function setSummary(paket, diskon, fee, total){
+    el("sumPaket").textContent = rupiah(paket);
+    if(diskon && diskon>0){ el("sumDiscRow").hidden=false; el("sumDisc").textContent = "- " + rupiah(diskon); }
+    else { el("sumDiscRow").hidden=true; }
+    if(fee!=null){ el("sumFeeRow").hidden=false; el("sumFee").textContent = rupiah(fee); }
+    else { el("sumFeeRow").hidden=true; }
+    el("sumTotal").textContent = rupiah(total);
+  }
+  var summaryReq = 0;
+  async function refreshSummary(){
+    var paket = unitPrice();
+    var diskon = appliedDiscount || 0;
+    var myReq = ++summaryReq;
+    // fallback dulu (biar instan)
+    setSummary(paket, diskon, null, Math.max(0, paket - diskon));
+    if(!svReady("estimateSummary")) return;
+    try{
+      var res = await Scalev.checkout.estimateSummary({ items: buildItems(), paymentMethod: selectedPayment, discountCode: appliedCode || undefined });
+      if(myReq !== summaryReq) return; // ada request lebih baru
+      var s = (res && (res.summary || res.data)) || res || {};
+      var sub  = pickNum(s,["subtotal","sub_total","itemsTotal","items_total","itemTotal"]);
+      var disc = pickNum(s,["discount","discountAmount","discount_amount","totalDiscount"]);
+      var fee  = pickNum(s,["paymentFee","payment_fee","adminFee","admin_fee","fee","paymentFeeAmount","payment_fee_amount"]);
+      var tot  = pickNum(s,["total","grandTotal","grand_total","totalAmount","total_amount","totalPrice","total_price"]);
+      if(sub!=null) paket = sub;
+      if(disc!=null){ diskon = disc; appliedDiscount = disc; }
+      setSummary(paket, diskon, fee, tot!=null ? tot : Math.max(0, paket - diskon + (fee||0)));
+    }catch(e){ /* diamkan; fallback sudah tampil */ }
+  }
+
+  /* ---------- Kupon ---------- */
+  el("btn-coupon").addEventListener("click", async function(){
+    var code = (el("in-coupon").value||"").trim();
+    var msg = el("couponMsg");
+    msg.className="coupon-msg"; msg.textContent="";
+    if(!code){ msg.className="coupon-msg bad"; msg.textContent="Masukkan kode kupon dulu."; return; }
+    if(!svReady("validateDiscount")){ msg.className="coupon-msg bad"; msg.textContent="Preview mode — kupon aktif setelah diterbitkan."; return; }
+    this.disabled=true; this.textContent="...";
+    try{
+      var r = await Scalev.checkout.validateDiscount({ discountCode: code, items: buildItems(), paymentMethod: selectedPayment });
+      var d = (r && (r.data||r.discount||r)) || {};
+      var valid = (r && (r.valid===true||r.isValid===true||r.ok===true||r.status==="valid")) || pickNum(d,["discountAmount","discount_amount","amount","discount","value"])!=null;
+      var amt = pickNum(d,["discountAmount","discount_amount","amount","discount","value"]);
+      if(valid){
+        appliedCode = code; if(amt!=null) appliedDiscount = amt;
+        msg.className="coupon-msg ok"; msg.textContent = "Kupon aktif." + (amt!=null?(" Potongan "+rupiah(amt)):"");
+        await refreshSummary();
+      }else{
+        appliedCode=""; appliedDiscount=0;
+        msg.className="coupon-msg bad"; msg.textContent = (r && r.message) ? r.message : "Kupon tidak valid.";
+        await refreshSummary();
+      }
+    }catch(e){
+      appliedCode=""; appliedDiscount=0;
+      msg.className="coupon-msg bad"; msg.textContent = (e && e.message) ? e.message : "Gagal cek kupon.";
+    }finally{ this.disabled=false; this.textContent="Pakai"; }
+  });
+
+  /* ---------- Validasi form ---------- */
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function validPhone(v){ var d=(v||"").replace(/[^0-9]/g,""); return d.length>=9 && d.length<=15 && (d.charAt(0)==="0" || d.slice(0,2)==="62"); }
+  function mark(fieldId, ok){ var f=el(fieldId); if(ok) f.classList.remove("invalid"); else f.classList.add("invalid"); return ok; }
+  function validateForm(){
+    var okN = mark("f-name", (el("in-name").value||"").trim().length>=2);
+    var okP = mark("f-phone", validPhone(el("in-phone").value));
+    var okE = mark("f-email", validEmail((el("in-email").value||"").trim()));
+    return okN && okP && okE;
+  }
+  el("in-phone").addEventListener("input", function(){ this.value=this.value.replace(/[^0-9]/g,""); });
+
+  /* ---------- Navigasi (aman untuk iframe) ---------- */
+  function navigate(url){
+    if(!url) return;
+    try{ if(window.top && window.top!==window.self){ window.top.location.href=url; return; } }catch(e){
+      try{ window.parent.postMessage({ type:"scalev:navigate", url:url }, "*"); return; }catch(e2){}
+    }
+    window.location.assign(url);
+  }
+  function showThanks(order){
+    var main=el("checkout");
+    main.innerHTML = '<div class="thanks"><div class="ic">✓</div><h2>Pesanan berhasil dibuat!</h2>'
+      + '<p>Cek email &amp; WhatsApp kamu untuk instruksi pembayaran dan link download setelah lunas. Terima kasih! 🙌</p></div>';
+    window.scrollTo(0,0);
+  }
+
+  /* ---------- Submit / createOrder ---------- */
+  el("btnOrder").addEventListener("click", async function(){
+    var btn=this; var fe=el("formErr"); fe.className="formerr"; fe.textContent="";
+    if(!validateForm()){ fe.className="formerr show"; fe.textContent="Lengkapi data pembeli dulu ya."; return; }
+    if(!payLinkForced && !selectedPayment){ fe.className="formerr show"; fe.textContent="Pilih metode pembayaran dulu."; return; }
+    if(!svReady("createOrder")){ fe.className="formerr show"; fe.textContent="Preview mode — checkout aktif setelah halaman diterbitkan di Scalev."; return; }
+    if(!variant){ fe.className="formerr show"; fe.textContent="Produk tidak tersedia."; return; }
+
+    var payload = {
+      customer:{ name:(el("in-name").value||"").trim(), phone:(el("in-phone").value||"").trim(), email:(el("in-email").value||"").trim() },
+      items: buildItems(),
+      paymentMethod: selectedPayment
+    };
+    if(appliedCode) payload.discountCode = appliedCode;
+
+    btn.disabled=true; var old=btn.textContent; btn.textContent="Memproses…";
+    try{
+      var order = await Scalev.checkout.createOrder(payload);
+      var url = order && (order.paymentUrl || order.successUrl || order.redirectUrl || order.instructionUrl || order.url);
+      if(url){ navigate(url); }
+      else if(after && after.type==="direct_to_whatsapp" && order && order.handlerPhone){
+        var txt = encodeURIComponent("Halo, saya baru order "+(product?product.name:"produk")+". Mohon info pembayaran & aksesnya ya.");
+        navigate("https://wa.me/"+String(order.handlerPhone).replace(/[^0-9]/g,"")+"?text="+txt);
+      }
+      else{ showThanks(order); }
+    }catch(e){
+      fe.className="formerr show"; fe.textContent = (e && e.message) ? e.message : "Gagal membuat pesanan. Coba lagi.";
+      btn.disabled=false; btn.textContent=old;
+    }
+  });
+
+  /* ---------- Countdown (dekoratif) ---------- */
+  (function(){
+    var e=el("count"); if(!e) return; var KEY="imv_promo_end", end;
+    try{ end=parseInt(localStorage.getItem(KEY),10);}catch(x){}
+    if(!end||isNaN(end)||end<Date.now()){ end=Date.now()+15*60*1000; try{localStorage.setItem(KEY,String(end));}catch(x){} }
+    function t(){ var s=Math.max(0,Math.floor((end-Date.now())/1000)),m=Math.floor(s/60),ss=s%60;
+      e.textContent=(m<10?"0":"")+m+":"+(ss<10?"0":"")+ss; if(s<=0)clearInterval(iv); }
+    t(); var iv=setInterval(t,1000);
+  })();
+
+  /* ---------- Prefill (kalau ada) ---------- */
+  try{
+    if(window.Scalev && Scalev.prefill && Scalev.prefill.get){
+      var pf = Scalev.prefill.get(); var c = pf && pf.customer;
+      if(c){ if(c.name) el("in-name").value=c.name; if(c.phone) el("in-phone").value=c.phone; if(c.email) el("in-email").value=c.email; }
+    }
+  }catch(e){}
+
+  /* ---------- Init ---------- */
+  renderProduct();
+  renderPayments();
+  refreshSummary();
+})();
+</script>
+</body>
+</html>
